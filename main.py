@@ -12,6 +12,7 @@ from api.payments import router as payments_router
 from api.skins import router as skins_router
 from api.user import router as user_router
 from api.ws import router as ws_router
+from config import settings
 from core.database import AsyncSessionLocal, engine
 from models.base import Base
 from models.skin import Skin, SkinKind
@@ -88,14 +89,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Checkers", lifespan=lifespan)
 
+allowed_origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

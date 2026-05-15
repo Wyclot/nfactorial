@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str
 
+    # CORS — comma-separated list of allowed origins. Defaults cover local dev.
+    cors_origins: str = (
+        "http://localhost:3000,http://localhost:5173,"
+        "http://127.0.0.1:3000,http://127.0.0.1:5173"
+    )
+
 
 
     # Google OAuth (web)
