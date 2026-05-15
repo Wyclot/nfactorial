@@ -20,7 +20,8 @@ def reconcile_pending_payments():
 
 
 async def _run():
-    engine = create_async_engine(settings.database_url)
+    from core.database import SQLALCHEMY_DATABASE_URL  # already normalized
+    engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
     session_maker = async_sessionmaker(engine, expire_on_commit=False)
     halyk = build_halyk_client()
 
