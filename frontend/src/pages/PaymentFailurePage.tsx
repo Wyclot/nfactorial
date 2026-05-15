@@ -15,7 +15,7 @@ export function PaymentFailurePage() {
   }, [paymentId]);
 
   return (
-    <div className="payment-result failure">
+    <div className="payment-result failure glass">
       <h1>✗ Payment failed</h1>
       <p>The payment didn't go through. You haven't been charged.</p>
       {payment?.status === 'charged' && (

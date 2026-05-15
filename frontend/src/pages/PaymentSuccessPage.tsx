@@ -72,7 +72,7 @@ export function PaymentSuccessPage() {
 
   if (error) {
     return (
-      <div className="payment-result">
+      <div className="payment-result glass">
         <h1>Payment</h1>
         <p className="error">{error}</p>
         <button onClick={() => navigate('/shop')}>Back to shop</button>
@@ -82,7 +82,7 @@ export function PaymentSuccessPage() {
 
   if (!payment) {
     return (
-      <div className="payment-result">
+      <div className="payment-result glass">
         <h1>⏳ Checking your payment…</h1>
         <p>This usually takes a couple of seconds.</p>
       </div>
@@ -91,14 +91,16 @@ export function PaymentSuccessPage() {
 
   if (payment.status === 'charged') {
     return (
-      <div className="payment-result success">
+      <div className="payment-result success glass-strong">
         <h1>✓ Payment successful</h1>
         <p>Your skin has been unlocked. Equip it from the shop.</p>
         <p className="redirect-hint">
           Returning to shop in {redirectIn ?? AUTO_REDIRECT_SECONDS}s…
         </p>
         <div className="actions">
-          <button onClick={() => navigate('/shop', { replace: true })}>Open shop now</button>
+          <button className="btn-primary" onClick={() => navigate('/shop', { replace: true })}>
+            Open shop now
+          </button>
         </div>
       </div>
     );
@@ -106,7 +108,7 @@ export function PaymentSuccessPage() {
 
   if (payment.status === 'pending') {
     return (
-      <div className="payment-result">
+      <div className="payment-result glass">
         <h1>⏳ Confirming payment…</h1>
         {exhausted ? (
           <>
@@ -121,7 +123,7 @@ export function PaymentSuccessPage() {
   }
 
   return (
-    <div className="payment-result failure">
+    <div className="payment-result failure glass">
       <h1>✗ Payment was not completed</h1>
       <p>{payment.refunded_at ? 'Payment was refunded.' : 'Payment failed or was cancelled.'}</p>
       <button onClick={() => navigate('/shop')}>Try again</button>

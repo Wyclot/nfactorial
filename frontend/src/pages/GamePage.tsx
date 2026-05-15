@@ -8,6 +8,10 @@ import { useAuth } from '../lib/auth';
 import { GameSocket } from '../lib/ws';
 import type { Game } from '../types';
 
+function initials(name?: string | null): string {
+  return (name ?? '?').trim().slice(0, 1).toUpperCase();
+}
+
 export function GamePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -49,7 +53,7 @@ export function GamePage() {
     return (
       <div>
         <button onClick={() => navigate('/')}>← Lobby</button>
-        {error ? <p className="error">{error}</p> : <p>Loading game…</p>}
+        {error ? <p className="error" style={{ marginTop: 16 }}>{error}</p> : <p className="muted">Loading game…</p>}
       </div>
     );
   }
@@ -93,14 +97,6 @@ export function GamePage() {
     });
   }
 
-  const turnLabel =
-    game.turn === 'w' ? `White${myColor === 'w' ? ' (you)' : ''}` :
-    `Black${myColor === 'b' ? ' (you)' : ''}`;
-
-  const winnerLabel = !game.winner_id ? 'Draw' :
-    game.winner_id === game.white_player.id ? 'White' :
-    game.winner_id === game.black_player?.id ? 'Black' : '?';
-
   const isVsAi = game.ai_difficulty !== null;
   const drawOfferFromOpponent =
     !isVsAi &&
@@ -110,17 +106,32 @@ export function GamePage() {
   const drawOfferFromMe =
     !isVsAi && game.draw_offered_by === user?.id && isInProgress;
 
+  const turnLabel =
+    game.turn === 'w'
+      ? `White${myColor === 'w' ? ' — your turn' : ''}`
+      : `Black${myColor === 'b' ? ' — your turn' : ''}`;
+
+  const winnerLabel = !game.winner_id ? 'Draw' :
+    game.winner_id === game.white_player.id ? 'White' :
+    game.winner_id === game.black_player?.id ? 'Black' : '?';
+
   return (
     <div className="game-page">
-      <header>
-        <button onClick={() => navigate('/')}>← Lobby</button>
-        <h2>Game</h2>
-        <span className={connected ? 'badge ok' : 'badge'}>{connected ? '● live' : '○ connecting'}</span>
+      <header className="game-header">
+        <button className="btn-ghost" onClick={() => navigate('/')}>← Lobby</button>
+        <h2>Match</h2>
+        <span className={connected ? 'badge ok' : 'badge'}>
+          {connected ? '● Live' : '○ Connecting…'}
+        </span>
       </header>
 
-      <div className="players">
-        <div className={`player ${game.turn === 'b' ? 'active' : ''}`}>
-          <span className="dot black" /> {game.black_player?.name ?? 'Waiting for opponent…'}
+      <div className="players-row">
+        <div className={`player-card ${game.turn === 'b' && isInProgress ? 'active' : ''}`}>
+          <span className="avatar black">{initials(game.black_player?.name) || 'B'}</span>
+          <div>
+            <div className="name">{game.black_player?.name ?? 'Waiting for opponent…'}</div>
+            <div className="role">Black{myColor === 'b' ? ' (you)' : ''}</div>
+          </div>
           {game.time_initial_ms !== null && (
             <Clock
               remainingMs={game.black_time_ms}
@@ -129,8 +140,13 @@ export function GamePage() {
             />
           )}
         </div>
-        <div className={`player ${game.turn === 'w' ? 'active' : ''}`}>
-          <span className="dot white" /> {game.white_player.name ?? 'White'}
+
+        <div className={`player-card ${game.turn === 'w' && isInProgress ? 'active' : ''}`}>
+          <span className="avatar">{initials(game.white_player.name) || 'W'}</span>
+          <div>
+            <div className="name">{game.white_player.name ?? 'White'}</div>
+            <div className="role">White{myColor === 'w' ? ' (you)' : ''}</div>
+          </div>
           {game.time_initial_ms !== null && (
             <Clock
               remainingMs={game.white_time_ms}
@@ -141,58 +157,74 @@ export function GamePage() {
         </div>
       </div>
 
+      {isInProgress && (
+        <div className="turn-banner">
+          <span className="pulse" />
+          <span>{turnLabel}</span>
+        </div>
+      )}
+
       {isWaiting && (
-        <div className="actions">
-          <p>Waiting for an opponent to join…</p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={copyLink}>{linkCopied ? '✓ Copied' : '📋 Copy invite link'}</button>
+        <div className="status-card glass">
+          <p style={{ margin: '0 0 12px' }}>Waiting for an opponent to join…</p>
+          <div className="board-actions">
+            <button className="btn-cyan" onClick={copyLink}>
+              {linkCopied ? '✓ Copied' : '📋 Copy invite link'}
+            </button>
             {!isPlayer && (
-              <button onClick={() => action(() => api.joinGame(game.id))}>Join as black</button>
+              <button className="btn-primary" onClick={() => action(() => api.joinGame(game.id))}>
+                Join as black
+              </button>
             )}
             {myColor === 'w' && (
-              <button onClick={() => action(() => api.abortGame(game.id))}>Abort game</button>
+              <button className="btn-danger" onClick={() => action(() => api.abortGame(game.id))}>
+                Abort game
+              </button>
             )}
           </div>
         </div>
       )}
 
       {isFinished && (
-        <p className="status">
-          {game.status === 'aborted' ? 'Game aborted.' : `Game over. Winner: ${winnerLabel}`}
-        </p>
+        <div className="status-card glass">
+          <h3 style={{ margin: 0 }}>
+            {game.status === 'aborted' ? 'Game aborted.' : `Winner: ${winnerLabel}`}
+          </h3>
+        </div>
       )}
 
-      {isInProgress && (
-        <>
-          <p>Turn: {turnLabel}</p>
-          {isPlayer && (
-            <div className="actions" style={{ display: 'flex', gap: 8, margin: '8px 0' }}>
-              <button onClick={() => action(() => api.resignGame(game.id))}>Resign</button>
-              {!isVsAi && !drawOfferFromMe && !drawOfferFromOpponent && (
-                <button onClick={() => action(() => api.offerDraw(game.id))}>Offer draw</button>
-              )}
-              {drawOfferFromMe && <span className="badge">Draw offer sent…</span>}
-              {drawOfferFromOpponent && (
-                <>
-                  <span className="badge ok">Opponent offers a draw</span>
-                  <button onClick={() => action(() => api.acceptDraw(game.id))}>Accept</button>
-                  <button onClick={() => action(() => api.declineDraw(game.id))}>Decline</button>
-                </>
-              )}
-            </div>
+      <div className="board-stage glass">
+        <Board
+          board={game.board}
+          turn={game.turn}
+          myColor={myColor}
+          disabled={disabled}
+          onMove={sendMove}
+          pieceSkinCode={user?.active_piece_skin_code ?? null}
+          boardSkinCode={user?.active_board_skin_code ?? null}
+        />
+      </div>
+
+      {isInProgress && isPlayer && (
+        <div className="board-actions">
+          <button className="btn-danger" onClick={() => action(() => api.resignGame(game.id))}>
+            🏳 Resign
+          </button>
+          {!isVsAi && !drawOfferFromMe && !drawOfferFromOpponent && (
+            <button onClick={() => action(() => api.offerDraw(game.id))}>
+              🤝 Offer draw
+            </button>
           )}
-        </>
+          {drawOfferFromMe && <span className="badge warn">Draw offer sent…</span>}
+          {drawOfferFromOpponent && (
+            <>
+              <span className="badge ok">Opponent offers a draw</span>
+              <button className="btn-success" onClick={() => action(() => api.acceptDraw(game.id))}>Accept</button>
+              <button onClick={() => action(() => api.declineDraw(game.id))}>Decline</button>
+            </>
+          )}
+        </div>
       )}
-
-      <Board
-        board={game.board}
-        turn={game.turn}
-        myColor={myColor}
-        disabled={disabled}
-        onMove={sendMove}
-        pieceSkinCode={user?.active_piece_skin_code ?? null}
-        boardSkinCode={user?.active_board_skin_code ?? null}
-      />
 
       {error && <p className="error">{error}</p>}
 

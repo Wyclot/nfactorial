@@ -6,13 +6,13 @@ import { api, ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import type { Skin, SkinKind } from '../types';
 
-const KIND_LABEL: Record<SkinKind, string> = {
-  piece_set: 'Pieces',
-  board: 'Boards',
-  effect: 'Effects',
-};
+type Tab = 'all' | 'piece_set' | 'board';
 
-const KIND_ORDER: SkinKind[] = ['piece_set', 'board', 'effect'];
+const TAB_LABEL: Record<Tab, string> = {
+  all: 'All',
+  piece_set: '♟ Pieces',
+  board: '🏁 Boards',
+};
 
 export function ShopPage() {
   const navigate = useNavigate();
@@ -22,6 +22,7 @@ export function ShopPage() {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [flashMsg, setFlashMsg] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('all');
 
   async function refresh() {
     setError(null);
@@ -39,8 +40,6 @@ export function ShopPage() {
 
   useEffect(() => {
     refresh();
-    // Re-fetch on tab focus / visibility change (handles return-from-Halyk via tab switch
-    // and ensures ownership state is always server-authoritative on page wake-up).
     const onFocus = () => refresh();
     const onVis = () => {
       if (document.visibilityState === 'visible') refresh();
@@ -54,22 +53,18 @@ export function ShopPage() {
   }, []);
 
   async function buy(skin: Skin) {
-    console.log('[shop] buy clicked for', skin.code, skin.id);
     setPendingId(skin.id);
     setError(null);
     setFlashMsg(null);
     try {
       const resp = await api.buySkin(skin.id);
-      console.log('[shop] /payments/skin response:', resp);
       if (resp.invoice_url) {
-        console.log('[shop] redirecting to Halyk:', resp.invoice_url);
         window.location.href = resp.invoice_url;
         return;
       }
-      setFlashMsg(`✓ Got "${skin.name}" — try equipping it.`);
+      setFlashMsg(`✓ Unlocked "${skin.name}" — equip it below.`);
       await refresh();
     } catch (e: any) {
-      console.error('[shop] buy failed', e);
       if (e instanceof ApiError && e.status === 409) {
         setFlashMsg('You already own this item — refreshing.');
         await refresh();
@@ -106,68 +101,84 @@ export function ShopPage() {
     }
   }
 
-  const byKind = useMemo(() => {
-    const groups: Record<SkinKind, Skin[]> = { piece_set: [], board: [], effect: [] };
-    for (const s of skins) groups[s.kind].push(s);
-    return groups;
-  }, [skins]);
+  const filtered = useMemo(() => {
+    if (tab === 'all') return skins;
+    return skins.filter((s) => s.kind === tab);
+  }, [skins, tab]);
 
-  if (loading) return <p>Loading shop…</p>;
+  if (loading) return <p className="muted">Loading shop…</p>;
 
   return (
     <div className="shop">
-      <header className="lobby-header">
-        <h1>🛍️ Skin Shop</h1>
-        <button onClick={() => navigate('/')}>← Lobby</button>
-      </header>
+      <section className="shop-hero glass">
+        <div>
+          <h1>🛍️ Skin Shop</h1>
+          <p style={{ margin: '6px 0 0' }}>Collect premium pieces and boards. Equip them to use in any match.</p>
+        </div>
+        <button className="btn-ghost" onClick={() => navigate('/')}>← Lobby</button>
+      </section>
 
-      {flashMsg && <p className="flash">{flashMsg}</p>}
-      {error && <p className="error">{error}</p>}
+      {flashMsg && <p className="flash" style={{ marginBottom: 12 }}>{flashMsg}</p>}
+      {error && <p className="error" style={{ marginBottom: 12 }}>{error}</p>}
 
-      {KIND_ORDER.map((kind) => {
-        const items = byKind[kind];
-        if (!items || items.length === 0) return null;
-        return (
-          <section key={kind} className="shop-section">
-            <h2>{KIND_LABEL[kind]}</h2>
-            <div className="skin-grid">
-              {items.map((skin) => (
-                <div
-                  key={skin.id}
-                  className={`skin-card ${skin.owned ? 'owned' : ''} ${skin.equipped ? 'equipped' : ''}`}
-                >
-                  <SkinPreview skin={skin} />
-                  <h3>{skin.name}</h3>
-                  {skin.description && <p className="skin-desc">{skin.description}</p>}
-                  <div className="skin-bottom">
-                    <span className="skin-price">{skin.price_kzt.toLocaleString()} ₸</span>
-                    {skin.equipped ? (
-                      <div className="card-actions">
-                        <span className="badge ok">⭐ Active</span>
-                        <button onClick={() => unequip(skin.kind)}>Unequip</button>
-                      </div>
-                    ) : skin.owned ? (
-                      <div className="card-actions">
-                        <span className="badge">✓ Owned</span>
-                        <button
-                          onClick={() => equip(skin)}
-                          disabled={pendingId !== null}
-                        >
-                          {pendingId === skin.id ? '…' : 'Equip'}
-                        </button>
-                      </div>
-                    ) : (
-                      <button onClick={() => buy(skin)} disabled={pendingId !== null}>
-                        {pendingId === skin.id ? 'Processing…' : 'Buy'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+      <div className="shop-tabs">
+        {(Object.keys(TAB_LABEL) as Tab[]).map((t) => (
+          <button
+            key={t}
+            className={`tab ${tab === t ? 'active' : ''}`}
+            onClick={() => setTab(t)}
+          >
+            {TAB_LABEL[t]}
+          </button>
+        ))}
+      </div>
+
+      <div className="skin-grid">
+        {filtered.map((skin) => (
+          <div
+            key={skin.id}
+            className={`skin-card ${skin.owned ? 'owned' : ''} ${skin.equipped ? 'equipped' : ''}`}
+          >
+            <SkinPreview skin={skin} />
+            <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <h3>{skin.name}</h3>
+              {skin.equipped && <span className="badge gold">⭐ Active</span>}
+              {!skin.equipped && skin.owned && <span className="badge ok">✓ Owned</span>}
             </div>
-          </section>
-        );
-      })}
+            {skin.description && <p className="skin-desc">{skin.description}</p>}
+
+            <div className="skin-bottom">
+              <span className="price-pill">{skin.price_kzt.toLocaleString()} ₸</span>
+              {skin.equipped ? (
+                <button onClick={() => unequip(skin.kind)}>Unequip</button>
+              ) : skin.owned ? (
+                <button
+                  className="btn-primary"
+                  onClick={() => equip(skin)}
+                  disabled={pendingId !== null}
+                >
+                  {pendingId === skin.id ? '…' : 'Equip'}
+                </button>
+              ) : (
+                <button
+                  className="btn-cyan"
+                  onClick={() => buy(skin)}
+                  disabled={pendingId !== null}
+                >
+                  {pendingId === skin.id ? 'Processing…' : 'Buy'}
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {filtered.length === 0 && (
+          <div className="empty glass" style={{ gridColumn: '1 / -1' }}>
+            <div className="big">🕳</div>
+            <div>Nothing in this category yet.</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
