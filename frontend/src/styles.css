@@ -1,0 +1,522 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #1a1a1a;
+  color: #eee;
+}
+
+#root {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+button {
+  background: #3a3a3a;
+  color: #eee;
+  border: 1px solid #555;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background: #4a4a4a;
+}
+
+.error {
+  color: #ff6b6b;
+  padding: 8px 12px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 6px;
+}
+
+/* Login */
+.login-page {
+  text-align: center;
+  padding-top: 80px;
+}
+
+/* Lobby */
+.lobby-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.lobby-header > div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.lobby section {
+  margin-bottom: 24px;
+}
+
+.lobby ul {
+  list-style: none;
+  padding: 0;
+}
+
+.lobby li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+/* Game */
+.game-page header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.game-page h2 {
+  margin: 0;
+  flex: 1;
+}
+
+.badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #333;
+  color: #aaa;
+}
+
+.badge.ok {
+  background: #1e4620;
+  color: #6fc36f;
+}
+
+.players {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.player {
+  flex: 1;
+  padding: 10px 12px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.6;
+}
+
+.player.active {
+  opacity: 1;
+  outline: 2px solid #6fc36f;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot.white {
+  background: #f5f5f5;
+}
+
+.dot.black {
+  background: #222;
+  border: 1px solid #555;
+}
+
+.clock {
+  margin-left: auto;
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 4px 10px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  color: #ccc;
+  min-width: 64px;
+  text-align: center;
+}
+
+.clock.active {
+  background: #2d4a2d;
+  color: #fff;
+}
+
+.clock.low {
+  background: #4a2020;
+  color: #ff6b6b;
+}
+
+.clock.active.low {
+  animation: pulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from { background: #4a2020; }
+  to   { background: #6b2828; }
+}
+
+/* ===================== Shop ===================== */
+
+.shop {
+  padding-bottom: 40px;
+}
+
+.flash {
+  background: #1e4620;
+  color: #6fc36f;
+  padding: 10px 14px;
+  border-radius: 6px;
+}
+
+.shop-section {
+  margin: 24px 0;
+}
+
+.shop-section h2 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  color: #ddd;
+}
+
+.skin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.skin-card {
+  background: #2a2a2a;
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid #3a3a3a;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skin-card.owned {
+  border-color: #4a6f4a;
+}
+
+.skin-card h3 {
+  margin: 4px 0 0;
+  font-size: 16px;
+}
+
+.skin-desc {
+  margin: 0;
+  font-size: 13px;
+  color: #aaa;
+  flex-grow: 1;
+}
+
+.skin-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.skin-price {
+  font-weight: 600;
+  font-size: 15px;
+  color: #ffd166;
+}
+
+/* ===================== Skin previews ===================== */
+
+.skin-preview {
+  width: 100%;
+  height: 130px;
+  border-radius: 8px;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Piece preview: two big pieces side-by-side */
+.piece-preview {
+  gap: 16px;
+}
+
+.preview-piece {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Board preview: 8x8 mini-board */
+.board-preview {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  width: 120px;
+  height: 120px;
+  border: 2px solid #555;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.board-preview > div {
+  aspect-ratio: 1;
+}
+
+.effect-preview .effect-spark {
+  font-size: 40px;
+  filter: drop-shadow(0 0 10px gold);
+}
+
+/* ===================== Per-skin styles =====================
+   Each skin's `code` is the CSS class for both preview and gameplay.
+   ============================================================ */
+
+/* --- Pearl Pieces: light cyan vs rose --- */
+.skin-piece_pearl.white {
+  background: linear-gradient(145deg, #e6f7ff 0%, #7ec8e3 100%);
+  color: #16475a;
+}
+.skin-piece_pearl.black {
+  background: linear-gradient(145deg, #ffd6e3 0%, #c9457a 100%);
+  color: #4a0d28;
+}
+
+/* --- Obsidian Pieces: emerald vs ruby --- */
+.skin-piece_obsidian.white {
+  background: linear-gradient(145deg, #c4eed1 0%, #2c9a5c 100%);
+  color: #0c3a1f;
+}
+.skin-piece_obsidian.black {
+  background: linear-gradient(145deg, #f5b6b6 0%, #b71c2c 100%);
+  color: #fff;
+}
+
+/* --- Gold Pieces: gold vs dark bronze --- */
+.skin-piece_gold.white {
+  background: linear-gradient(145deg, #fff3c4 0%, #e8b836 100%);
+  color: #5a3a0a;
+}
+.skin-piece_gold.black {
+  background: linear-gradient(145deg, #b07e30 0%, #5e3e10 100%);
+  color: #f3e2b3;
+}
+
+/* --- Board: Marble (light & creamy) --- */
+.skin-board_marble .dark,
+.board.theme-board_marble .square.dark {
+  background: linear-gradient(135deg, #8a7656 0%, #5a4830 100%);
+}
+.skin-board_marble .light,
+.board.theme-board_marble .square.light {
+  background: linear-gradient(135deg, #faf2e0 0%, #e4d4ad 100%);
+}
+
+/* --- Board: Ocean (blue) --- */
+.skin-board_ocean .dark,
+.board.theme-board_ocean .square.dark {
+  background: linear-gradient(135deg, #14507a 0%, #0a2a4a 100%);
+}
+.skin-board_ocean .light,
+.board.theme-board_ocean .square.light {
+  background: linear-gradient(135deg, #bce5f3 0%, #6ab5d8 100%);
+}
+
+/* ===================== Shop card actions ===================== */
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.skin-card.equipped {
+  border-color: #ffd166;
+  box-shadow: 0 0 0 1px #ffd166;
+}
+
+/* ===================== Payment result pages ===================== */
+
+.payment-result {
+  text-align: center;
+  padding-top: 60px;
+}
+
+.payment-result h1 {
+  margin-bottom: 8px;
+}
+
+.payment-result.success h1 { color: #6fc36f; }
+.payment-result.failure h1 { color: #ff6b6b; }
+
+.payment-result .actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.redirect-hint {
+  color: #aaa;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.status {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* Board */
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1;
+  margin: 16px auto;
+  border: 3px solid #555;
+  user-select: none;
+}
+
+.square {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.square.light {
+  background: #d6c8a8;
+}
+
+.square.dark {
+  background: #6b4f2c;
+  cursor: pointer;
+}
+
+.square.selected {
+  box-shadow: inset 0 0 0 4px #ffcb3b;
+}
+
+.square.legal::after {
+  content: '';
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  background: rgba(120, 255, 120, 0.55);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.piece {
+  width: 78%;
+  height: 78%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.piece-white {
+  background: linear-gradient(145deg, #f8f8f8, #c8c8c8);
+  color: #b88a00;
+}
+
+.piece-black {
+  background: linear-gradient(145deg, #444, #111);
+  color: #ffcc44;
+}
+
+.crown {
+  line-height: 1;
+}
+
+/* Analysis */
+.analysis {
+  margin-top: 24px;
+  padding: 16px;
+  background: #222;
+  border-radius: 8px;
+}
+
+.analysis h3 {
+  margin: 0 0 8px;
+}
+
+.analysis-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.analysis-list li {
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  background: #2a2a2a;
+  border-left: 4px solid #555;
+  border-radius: 4px;
+}
+
+.analysis-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.analysis-head .move-num {
+  color: #888;
+  width: 36px;
+}
+
+.analysis-head .verdict {
+  font-weight: 600;
+}
+
+.analysis-head .eval-loss {
+  margin-left: auto;
+  color: #888;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.analysis .comment {
+  margin: 6px 0 4px;
+  font-size: 14px;
+}
+
+.analysis .best-line {
+  margin: 0;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.analysis .best-line code {
+  background: #1a1a1a;
+  padding: 2px 6px;
+  border-radius: 3px;
+}

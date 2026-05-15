@@ -1,0 +1,88 @@
+name: checkers
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: checkers-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: checkers
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d checkers"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: checkers-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  backend:
+    build: .
+    container_name: checkers-backend
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    env_file: .env
+    environment:
+
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/checkers
+      REDIS_URL: redis://redis:6379/0
+      HALYK_POSTLINK_URL: ${HALYK_POSTLINK_URL:-http://localhost:8000/payments/halyk/postlink}
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  celery-worker:
+    build: .
+    container_name: checkers-celery-worker
+    command: celery -A tasks.celery_app worker --loglevel=info
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/checkers
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  celery-beat:
+    build: .
+    container_name: checkers-celery-beat
+    command: celery -A tasks.celery_app beat --loglevel=info
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/checkers
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
